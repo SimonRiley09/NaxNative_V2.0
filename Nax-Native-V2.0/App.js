@@ -1,11 +1,12 @@
 import { StatusBar } from 'expo-status-bar';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import { StyleSheet, Text, View, TextInput, Button, TouchableOpacity, FlatList, Dimensions, ScrollView, Platform } from 'react-native';
+import { StyleSheet, Text, View, TextInput, Button, TouchableOpacity, FlatList, Dimensions, Platform, ScrollView } from 'react-native';
 import react, { useState, useCallback, useRef, useEffect } from 'react';
 import config from './config';
 import React from 'react';
 import WebView from 'react-native-webview';
+import { VideoScroll, Content } from 'react-native-video-scroll';
 
 
 
@@ -14,6 +15,7 @@ import WebView from 'react-native-webview';
 //currently transitioning to react-native-youtube-iframe
 //Change backend so that it send the video ID instead of the URL, as this new library only needs the id
 //copy and paste the basic usage from the documentation page: https://lonelycpp.github.io/react-native-youtube-iframe/basic-usage
+//Use FlatList instead of scroll view
 
 
 
@@ -65,29 +67,30 @@ const HomeScreen = ({ navigation, query, setQuery, handleSubmit, maxResults, set
 
 function VideoScreenWrapper({data, maxResults}){
   console.log(data)
-  const playerRef = useRef(null);
-  const [videos, setVideos] = useState([]);
   const { width, height } = Dimensions.get('window');
 
 
-  for (let i = 0; i < data.length; i++) {
-    videos.push({uri: data[i], title: `Video ${i}`},);
-  }
-  //const URL = data[0]
+  const videos = data.map((uri, index) => ({
+    uri: uri,
+    title: `Video ${index}`,
+  }));
+
+  const URL = data[0]
   console.log("videos: ", videos);
-  const VideoView = ({URL}) =>(
-    <WebView
-        source={{ uri: URL }}
-        style={{ width: '100%', height: '100%' }}
-    />
-  )
+  
   return (
     <FlatList
-        data={videos}
-        renderItem={({item}) => <VideoView URL={item.uri} />}
-        keyExtractor={item => item.uri}
-      />
-);
+      styles={{flex: 1}}
+      data={videos}
+      renderItem={({ item }) => (
+        <WebView
+          source={{ uri: item.uri }}
+          style={{ width: '100%', height: '100%'}}
+        />
+      )}
+      keyExtractor={(item, index) => index.toString()}
+    />
+  );
 }
 
 export default function App() {
