@@ -2,21 +2,25 @@ import { StatusBar } from 'expo-status-bar';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import { StyleSheet, Text, View, TextInput, Button, TouchableOpacity, ScrollView, Dimensions, FlatList, Platform } from 'react-native';
-import react, { useState, useRef } from 'react';
+import react, { useState, useCallback, useRef, useEffect } from 'react';
 import config from './config';
-import { Video, ResizeMode } from 'expo-av';
-import YoutubePlayer from "react-native-youtube-iframe";
+import React from 'react';
+import WebView from 'react-native-webview';
+import { VideoScroll, Content } from 'react-native-video-scroll';
+
+
 
 
 
 //currently transitioning to react-native-youtube-iframe
 //Change backend so that it send the video ID instead of the URL, as this new library only needs the id
 //copy and paste the basic usage from the documentation page: https://lonelycpp.github.io/react-native-youtube-iframe/basic-usage
-// **Very Important** Use OAuth insead of API key, and then learn how to put it in your cod, build it then give the SHA 1 fingerprint after you build for android
-// Android Client ID:  740703559154-k4doht7ajcuebuajjha6t2f93kjhqfpk.apps.googleusercontent.com
+
 
 
 const Stack = createNativeStackNavigator();
+const { width, height } = Dimensions.get('window');
+
 
 const HomeScreen = ({ navigation, query, setQuery, handleSubmit, maxResults, setMaxResults, channel, setChannel, numTextInputs, setNumTextInputs, data, error, setData, setError }) => (
   <View style={styles.container}>
@@ -61,42 +65,40 @@ const HomeScreen = ({ navigation, query, setQuery, handleSubmit, maxResults, set
 
 
 function VideoScreenWrapper({data, maxResults}){
-  const videoSource = 'https://www.youtube.com/watch?v=med2xOFcTG0'
-  const video = useRef(null);
-  const [status, setStatus] = useState({});
-  if ( data && data.length > 0){
-  try{
-  return (
-      <View style={styles.container}>
-        <Video
-          ref={video}
-          style={styles.video}
-          source={{
-            uri: 'videoSource',
-          }}
-          useNativeControls
-          resizeMode={ResizeMode.CONTAIN}
-          isLooping
-          onPlaybackStatusUpdate={status => setStatus(() => status)}
-        />
-        <View style={styles.buttons}>
-          <Button
-            title={status.isPlaying ? 'Pause' : 'Play'}
-            onPress={() =>
-              status.isPlaying ? video.current.pauseAsync() : video.current.playAsync()
-            }
-          />
-        </View>
-      </View>
-    );}catch (error){
-      console.log("Error in the video", error);
-    }
-  }else{
-    console.log("No data")
+  console.log(data)
+  const playerRef = useRef(null);
+  const [playing, setPlaying] = useState(true);
+  const [initialContent, setInitialContent] = useState([]);
+  const [content, setContent] = useState(initialContent);
+  const { width, height } = Dimensions.get('window');
+
+
+  for (let i = 0; i < data.length; i++) {
+    initialContent.push({url: data[i], title: 'video ${i}'},);
   }
+  console.log("videos: ", initialContent)
+
+  const renderItem = ({ item }) => (
+    <View style={{ width, height }}>
+    <WebView
+        source={{ uri: videos.url }}
+        style={{ width: '100%', height: '100%' }}
+    />
+    </View>
+  );
+
+
+  return (
+    <VideoScroll
+          data={content}
+          renderItem={renderItem}
+          keyExtractor={(item, index) => index.toString()}
+    />
+);
 }
 
 export default function App() {
+  const [userInfo, setUserInfo] = useState(null);
   const [maxResults, setMaxResults] = useState(5);
   const [token, setToken] = useState(null);4
   const [data, setData] = useState(null);
@@ -106,11 +108,6 @@ export default function App() {
   const [numTextInputs,setNumTextInputs] = useState(0);
   const [numVideos, setNumVideos] = useState(0);
 
-  if (Platform.OS === 'ios'){
-    console.log("IOS")
-  } else if (Platform.OS === 'android'){
-    console.log("Android")
-  }
 
   const handleSubmit = async (navigation) =>{
     setError(null);
@@ -250,10 +247,14 @@ const styles = StyleSheet.create({
   },
   video: {
     flex: 1,
-    width: '80%',
-    height: '80%',
+    width: {width},
+    height: {height},
   },
   controlsContainer: {
     padding: 10,
   },
+  videoContainer: {
+    width: Dimensions.get("window").width,
+    height: Dimensions.get("window").height,
+  }
 });
