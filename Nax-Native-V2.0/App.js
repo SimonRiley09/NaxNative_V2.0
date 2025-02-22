@@ -1,12 +1,11 @@
 import { StatusBar } from 'expo-status-bar';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import { StyleSheet, Text, View, TextInput, Button, TouchableOpacity, ScrollView, Dimensions, FlatList, Platform } from 'react-native';
+import { StyleSheet, Text, View, TextInput, Button, TouchableOpacity, FlatList, Dimensions, ScrollView, Platform } from 'react-native';
 import react, { useState, useCallback, useRef, useEffect } from 'react';
 import config from './config';
 import React from 'react';
 import WebView from 'react-native-webview';
-import { VideoScroll, Content } from 'react-native-video-scroll';
 
 
 
@@ -67,33 +66,27 @@ const HomeScreen = ({ navigation, query, setQuery, handleSubmit, maxResults, set
 function VideoScreenWrapper({data, maxResults}){
   console.log(data)
   const playerRef = useRef(null);
-  const [playing, setPlaying] = useState(true);
-  const [initialContent, setInitialContent] = useState([]);
-  const [content, setContent] = useState(initialContent);
+  const [videos, setVideos] = useState([]);
   const { width, height } = Dimensions.get('window');
 
 
   for (let i = 0; i < data.length; i++) {
-    initialContent.push({url: data[i], title: 'video ${i}'},);
+    videos.push({uri: data[i], title: `Video ${i}`},);
   }
-  console.log("videos: ", initialContent)
-
-  const renderItem = ({ item }) => (
-    <View style={{ width, height }}>
+  //const URL = data[0]
+  console.log("videos: ", videos);
+  const VideoView = ({URL}) =>(
     <WebView
-        source={{ uri: videos.url }}
+        source={{ uri: URL }}
         style={{ width: '100%', height: '100%' }}
     />
-    </View>
-  );
-
-
+  )
   return (
-    <VideoScroll
-          data={content}
-          renderItem={renderItem}
-          keyExtractor={(item, index) => index.toString()}
-    />
+    <FlatList
+        data={videos}
+        renderItem={({item}) => <VideoView URL={item.uri} />}
+        keyExtractor={item => item.uri}
+      />
 );
 }
 
