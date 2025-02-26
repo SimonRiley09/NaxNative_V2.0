@@ -2,7 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import { StyleSheet, Text, View, TextInput, Button, TouchableOpacity, FlatList, Dimensions, Platform, ScrollView } from 'react-native';
-import react, { useState, useCallback, useRef, useEffect } from 'react';
+import react, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import config from './config';
 import React from 'react';
 import WebView from 'react-native-webview';
@@ -67,30 +67,68 @@ const HomeScreen = ({ navigation, query, setQuery, handleSubmit, maxResults, set
 
 function VideoScreenWrapper({data, maxResults}){
   console.log(data)
-  const { width, height } = Dimensions.get('window');
+  const { width, height } = Dimensions.get('screen');
+  const flatListRef = useRef(null);
+  const visibleItems = useRef([]);
 
+  const videos = useMemo(() => {
+    return data.map((uri, index) => ({
+      uri: uri,
+      title: `Video ${index}`,
+    }));
+  }, [data]);
 
-  const videos = data.map((uri, index) => ({
-    uri: uri,
-    title: `Video ${index}`,
-  }));
+  const handleEndReached = () => {
+    console.log("You've reached the end!");
+  };
 
-  const URL = data[0]
+  const handleViewableItemsChanged = ({ viewableItems }) => {
+    visibleItems.current = viewableItems;
+    //Pause the videos that are not fully visible.
+    videos.forEach((video, index) => {
+      const isVisible = viewableItems.some(
+        (item) => item.index === index
+      );
+      if (flatListRef.current && !isVisible) {
+        //Pause the video.
+        flatListRef.current.getScrollResponder().setNativeProps({
+          paused: true,
+        });
+      } else if (flatListRef.current && isVisible) {
+        //Play video if it is visible.
+        flatListRef.current.getScrollResponder().setNativeProps({
+          paused: false,
+        });
+      }
+    });
+  };
+
+  const URL = data[0];
   console.log("videos: ", videos);
-  
-  return (
-    <FlatList
-      styles={{flex: 1}}
-      data={videos}
-      renderItem={({ item }) => (
-        <WebView
-          source={{ uri: item.uri }}
-          style={{ width: '100%', height: '100%'}}
-        />
-      )}
-      keyExtractor={(item, index) => index.toString()}
-    />
-  );
+
+  try {
+    return (
+      <FlatList
+        style={{ flex: 1 }}
+        data={videos}
+        renderItem={({ item }) => (
+          <WebView
+            source={{ uri: item.uri }}
+            style={{ height: height, width: width }}
+            mediaPlaybackRequiresUserAction={true}
+          />
+        )}
+        keyExtractor={(item, index) => index.toString()}
+        pagingEnabled
+        horizontal={false}
+        showsVerticalScrollIndicator={true}
+        ref={flatListRef}
+        onViewableItemsChanged={handleViewableItemsChanged}
+      />
+    );
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 export default function App() {
