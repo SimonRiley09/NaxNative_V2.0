@@ -69,7 +69,7 @@ function VideoScreenWrapper({data, maxResults}){
   console.log(data)
   const { width, height } = Dimensions.get('screen');
   const flatListRef = useRef(null);
-  const visibleItems = useRef([]);
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(null)
 
   const videos = useMemo(() => {
     return data.map((uri, index) => ({
@@ -83,25 +83,11 @@ function VideoScreenWrapper({data, maxResults}){
   };
 
   const handleViewableItemsChanged = ({ viewableItems }) => {
-    visibleItems.current = viewableItems;
-    //Pause the videos that are not fully visible.
-    videos.forEach((video, index) => {
-      const isVisible = viewableItems.some(
-        (item) => item.index === index
-      );
-      if (flatListRef.current && !isVisible) {
-        //Pause the video.
-        flatListRef.current.getScrollResponder().setNativeProps({
-          paused: true,
-        });
-      } else if (flatListRef.current && isVisible) {
-        //Play video if it is visible.
-        flatListRef.current.getScrollResponder().setNativeProps({
-          paused: false,
-        });
-      }
-    });
-  };
+    const visibleIndex = viewableItems[0]?.index;
+    if (visibleIndex !== undefined && visibleIndex !== currentVideoIndex) {
+      setCurrentVideoIndex(visibleIndex);
+    }
+      };
 
   const URL = data[0];
   console.log("videos: ", videos);
@@ -115,7 +101,7 @@ function VideoScreenWrapper({data, maxResults}){
           <WebView
             source={{ uri: item.uri }}
             style={{ height: height, width: width }}
-            mediaPlaybackRequiresUserAction={true}
+            mediaPlaybackRequiresUserAction={false}
           />
         )}
         keyExtractor={(item, index) => index.toString()}
