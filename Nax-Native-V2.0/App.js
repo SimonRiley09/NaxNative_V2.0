@@ -16,6 +16,8 @@ import { VideoScroll, Content } from 'react-native-video-scroll';
 //Change backend so that it send the video ID instead of the URL, as this new library only needs the id
 //copy and paste the basic usage from the documentation page: https://lonelycpp.github.io/react-native-youtube-iframe/basic-usage
 //Use FlatList instead of scroll view
+//UPDATE api backend to it switches APIs: Done
+// Fix accepting arrays in backend
 
 
 
@@ -23,12 +25,12 @@ const Stack = createNativeStackNavigator();
 const { width, height } = Dimensions.get('window');
 
 
-const HomeScreen = ({ navigation, query, setQuery, handleSubmit, maxResults, setMaxResults, channel, setChannel, numTextInputs, setNumTextInputs, data, error, setData, setError }) => (
+const HomeScreen = ({ navigation, query, setQuery, handleSubmit, maxResults, setMaxResults, channel, setChannel, numTextInputs, setNumTextInputs, data, error, setData, setError, queryString, setQueryString }) => (
   <View style={styles.container}>
     <TextInput
       style={styles.input}
-      value={query} // Set the value of TextInput to the state variable
-      onChangeText={(value) => setQuery(value)} // Update the state when the text changes
+      value={queryString}
+      onChangeText={(value) => setQueryString(value)} // Update the state when the text changes
       placeholder='keywords/hashtags (e.g. "#funny cooking" no commas)'
     />
     <TextInput
@@ -67,9 +69,9 @@ const HomeScreen = ({ navigation, query, setQuery, handleSubmit, maxResults, set
 
 function VideoScreenWrapper({data, maxResults}){
   console.log(data)
-  const { width, height } = Dimensions.get('screen');
+  const { width, height } = Dimensions.get('window');
   const flatListRef = useRef(null);
-  const visibleItems = useRef([]);
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(null)
 
   const videos = useMemo(() => {
     return data.map((uri, index) => ({
@@ -83,25 +85,11 @@ function VideoScreenWrapper({data, maxResults}){
   };
 
   const handleViewableItemsChanged = ({ viewableItems }) => {
-    visibleItems.current = viewableItems;
-    //Pause the videos that are not fully visible.
-    videos.forEach((video, index) => {
-      const isVisible = viewableItems.some(
-        (item) => item.index === index
-      );
-      if (flatListRef.current && !isVisible) {
-        //Pause the video.
-        flatListRef.current.getScrollResponder().setNativeProps({
-          paused: true,
-        });
-      } else if (flatListRef.current && isVisible) {
-        //Play video if it is visible.
-        flatListRef.current.getScrollResponder().setNativeProps({
-          paused: false,
-        });
-      }
-    });
-  };
+    const visibleIndex = viewableItems[0]?.index;
+    if (visibleIndex !== undefined && visibleIndex !== currentVideoIndex) {
+      setCurrentVideoIndex(visibleIndex);
+    }
+      };
 
   const URL = data[0];
   console.log("videos: ", videos);
@@ -115,7 +103,7 @@ function VideoScreenWrapper({data, maxResults}){
           <WebView
             source={{ uri: item.uri }}
             style={{ height: height, width: width }}
-            mediaPlaybackRequiresUserAction={true}
+            mediaPlaybackRequiresUserAction={false}
           />
         )}
         keyExtractor={(item, index) => index.toString()}
@@ -132,15 +120,35 @@ function VideoScreenWrapper({data, maxResults}){
 }
 
 export default function App() {
-  const [userInfo, setUserInfo] = useState(null);
   const [maxResults, setMaxResults] = useState(5);
   const [token, setToken] = useState(null);4
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState([]);
   const [channel, setChannel] = useState([]);
   const [numTextInputs,setNumTextInputs] = useState(0);
   const [numVideos, setNumVideos] = useState(0);
+  const [queryString, setQueryString] = useState("");
+
+  const handleQuery = async(query, queryString,) =>{
+    try{
+      let currentWord = "";
+      for(let i = 0; i<=queryString.length; i++){
+        let character = queryString[i];
+        if(character==" "){
+          query.push(currentWord);
+          currentWord = "";
+        }else if(character != " "){
+          currentWord += character;
+        }
+        if(currentWord){
+          query.push(currentWord)
+        }
+      }
+    }catch(error){
+      console.log(`error from handle query: ${error}`)
+    }
+  }
 
 
   const handleSubmit = async (navigation) =>{
@@ -160,6 +168,11 @@ export default function App() {
       return;
     }
 
+    try{
+      handleQuery(query, queryString);
+    }catch(error){
+      console.log(`error while converting: ${error}`);
+    }
     console.log("actually sending it")
     try {
       const response = await fetch(`${config.API_URL}/api/settings`, {
@@ -229,6 +242,8 @@ export default function App() {
           error={error}
           setError={setError}
           handleSubmit={handleSubmit}
+          queryString={queryString}
+          setQueryString={setQueryString}
             />
           )}
         </Stack.Screen>

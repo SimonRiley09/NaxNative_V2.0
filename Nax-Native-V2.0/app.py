@@ -6,6 +6,7 @@ from googleapiclient.discovery import build
 import functions
 from flask_cors import CORS, cross_origin
 import uuid  # Add this import
+import random
 
 # Configure application
 app = Flask(__name__)
@@ -13,6 +14,9 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 #Get the API key from the environment
 API_KEY = "AIzaSyA586g4wab4jL3qBffHb4OZ-XAjobwbuy0"
+API_KEY2 = "AIzaSyBZFFB2SAWVeOugZsLkejTOp12fctk5vRc"
+current_api_key = API_KEY
+
 print(API_KEY)
 
 """@app.after_request
@@ -48,7 +52,31 @@ def settings_api():
         elif channel:
             response = functions.youtube_videos(API_KEY=API_KEY, max_results=number_of_shorts, channelNames=channel, query=None)
         elif query:
-            response = functions.youtube_videos(API_KEY=API_KEY, max_results=number_of_shorts, channelNames=None, query=query)
+            global current_api_key
+            allResponse= []
+            for aQuery in query:
+                try:
+                    tempResponse = functions.youtube_videos(API_KEY=current_api_key, max_results=number_of_shorts, channelNames=None, query=aQuery)
+                except Exception as e:
+                    print(e)
+                    if e =="quota exceeds":
+                        print("switching APIs")
+                        current_api_key = API_KEY2
+                        try:
+                            tempResponse = functions.youtube_videos(API_KEY=current_api_key, max_results=number_of_shorts, channelNames=None, query=aQuery)
+                        except Exception as e:
+                            print(f'man this one is serious: {e}')
+                        allResponse.append(tempResponse)
+            
+            random.shuffle(allResponse)
+            list_length = len(allResponse)
+            divide = list_length // int(number_of_shorts)
+            response = allResponse[:divide]
+            print (response)
+            
+        elif not query:
+            print(data)
+            return({"error":"query not found"}), 400
     else:
         return({"error":"one of the components not found"}), 400
 

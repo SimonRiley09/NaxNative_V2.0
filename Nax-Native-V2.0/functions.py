@@ -11,7 +11,7 @@ from googleapiclient.discovery import build
 import googleapiclient.errors
 import uuid
 from flask import jsonify
-
+import requests
 
 api_service_name = "youtube"
 api_version = "v3"
@@ -68,8 +68,9 @@ def youtube_videos(max_results, API_KEY, channelNames=None, query=None):
                 channelId=ID,
                 maxResults=max_results,
                 q=query,
-                type="video",
+                type="short",
                 videoDuration="short",
+                videoEmbeddable="true",
             )
             try:
                 response = request.execute()
@@ -88,6 +89,7 @@ def youtube_videos(max_results, API_KEY, channelNames=None, query=None):
             q=query,
             type="video",
             videoDuration="short",
+            videoEmbeddable="true",
         )
         try:
             response = request.execute()
@@ -96,7 +98,9 @@ def youtube_videos(max_results, API_KEY, channelNames=None, query=None):
                     video_id = item["id"]["videoId"]
                     video_links.append(f"https://www.youtube.com/embed/{video_id}")
         except Exception as e:
-            print(f"An error occurred: {e}")
+            if e.status_code == 403:
+                raise Exception("quota exceeds")
+            
 
     if not query and not channelNames:
         print("Please provide a query or channel name")
