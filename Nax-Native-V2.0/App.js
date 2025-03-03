@@ -132,19 +132,23 @@ export default function App() {
 
   const handleQuery = async(query, queryString,) =>{
     try{
+      query.length = 0;
       let currentWord = "";
       for(let i = 0; i<=queryString.length; i++){
         let character = queryString[i];
         if(character==" "){
-          query.push(currentWord);
-          currentWord = "";
-        }else if(character != " "){
+          if (currentWord){
+            query.push(currentWord);
+            currentWord = "";
+          }
+        }else{
           currentWord += character;
         }
-        if(currentWord){
+      }
+      if(currentWord){
           query.push(currentWord)
         }
-      }
+      console.log(query)
     }catch(error){
       console.log(`error from handle query: ${error}`)
     }

@@ -5,8 +5,9 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from googleapiclient.discovery import build
 import functions
 from flask_cors import CORS, cross_origin
-import uuid  # Add this import
+import uuid
 import random
+#fix quota exceeds in the backend
 
 # Configure application
 app = Flask(__name__)
