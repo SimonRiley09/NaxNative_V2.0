@@ -1,12 +1,12 @@
 import { StatusBar } from 'expo-status-bar';
-import {NavigationContainer} from '@react-navigation/native';
+import {NavigationContainer, TabActions} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import { StyleSheet, Text, View, TextInput, Button, TouchableOpacity, FlatList, Dimensions, Platform, ScrollView } from 'react-native';
-import react, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { useHeaderHeight } from '@react-navigation/elements';
+import { StyleSheet, Text, View, TextInput, Button, TouchableOpacity, FlatList, Dimensions, SafeAreaView, ScrollView } from 'react-native';
+import react, { useState, useMemo, useCallback, useRef, useEffect, Tabs } from 'react';
 import config from './config';
 import React from 'react';
 import WebView from 'react-native-webview';
-import { VideoScroll, Content } from 'react-native-video-scroll';
 
 
 
@@ -68,10 +68,11 @@ const HomeScreen = ({ navigation, query, setQuery, handleSubmit, maxResults, set
 
 
 function VideoScreenWrapper({data, maxResults}){
-  console.log(data)
   const { width, height } = Dimensions.get('window');
   const flatListRef = useRef(null);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(null)
+  const topHeight = useHeaderHeight();
+  console.log(`top height: ${topHeight}`);
 
   const videos = useMemo(() => {
     return data.map((uri, index) => ({
@@ -85,7 +86,8 @@ function VideoScreenWrapper({data, maxResults}){
   };
 
   const handleViewableItemsChanged = ({ viewableItems }) => {
-    const visibleIndex = viewableItems[0]?.index;
+    const visibleIndex = viewableItems[0].index;
+    console.log(`*********visible index: ${visibleIndex}**********8`)
     if (visibleIndex !== undefined && visibleIndex !== currentVideoIndex) {
       setCurrentVideoIndex(visibleIndex);
     }
@@ -96,23 +98,25 @@ function VideoScreenWrapper({data, maxResults}){
 
   try {
     return (
-      <FlatList
-        style={{ flex: 1 }}
-        data={videos}
-        renderItem={({ item }) => (
-          <WebView
-            source={{ uri: item.uri }}
-            style={{ height: height, width: width }}
-            mediaPlaybackRequiresUserAction={false}
-          />
-        )}
-        keyExtractor={(item, index) => index.toString()}
-        pagingEnabled
-        horizontal={false}
-        showsVerticalScrollIndicator={true}
-        ref={flatListRef}
-        onViewableItemsChanged={handleViewableItemsChanged}
-      />
+      <View style={{backgroundColor: "black", height: height, width: width,  marginTop: 0,marginBottom: 0, padding: 0,}}>
+        <FlatList
+          style={{ flex: 1, marginBottom: 0, padding:0 }}
+          data={videos}
+          renderItem={({ item }) => (
+            <WebView
+              source={{ uri: item.uri }}
+              style={{ backgroundColor: "black", height: height, width: width, flex: 1, alignItems: 'center', justifyContent: 'center', display: 'flex', marginTop: 0, marginBottom: 0 }}
+              mediaPlaybackRequiresUserAction={false}
+            />
+          )}
+          keyExtractor={(item, index) => index.toString()}
+          pagingEnabled
+          initialNumToRender={1}
+          showsVerticalScrollIndicator={false}
+          ref={flatListRef}
+          onViewableItemsChanged={handleViewableItemsChanged}
+        />
+      </View>
     );
   } catch (error) {
     console.log(error);
@@ -141,13 +145,14 @@ export default function App() {
             query.push(currentWord);
             currentWord = "";
           }
-        }else{
+        }else if(character!=undefined){
           currentWord += character;
         }
       }
       if(currentWord){
           query.push(currentWord)
         }
+      //query.pop()
       console.log(query)
     }catch(error){
       console.log(`error from handle query: ${error}`)
@@ -230,8 +235,11 @@ export default function App() {
         initialRouteName="Home"
         screenOptions={{
           headerShown: false,
+          screenEnabled: false,
         }}
-      ><Stack.Screen name="Home">
+        styles={{backgroundColor: "black"}}
+      >
+      <Stack.Screen name="Home">
       {({navigation}) => (
         <HomeScreen 
           navigation={navigation}
@@ -277,6 +285,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 0,
+    marginBottom: 0,
   },
   input: {
     width: '80%',
@@ -293,21 +303,18 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    //padding: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    //paddingHorizontal: 50,
   },
   video: {
     flex: 1,
     width: {width},
     height: {height},
   },
-  controlsContainer: {
-    padding: 10,
-  },
-  videoContainer: {
-    width: Dimensions.get("window").width,
-    height: Dimensions.get("window").height,
-  }
 });
+
+
+//Sigma rizzy balls
+//+big jug tits
+//goon sesh with the boys^2
+//==gay fortnite

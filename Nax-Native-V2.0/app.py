@@ -20,18 +20,6 @@ current_api_key = API_KEY
 
 print(API_KEY)
 
-"""@app.after_request
-def after_request(response):
-    #Ensure responses aren't cached
-    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    response.headers["Expires"] = 0
-    response.headers["Pragma"] = "no-cache"
-    # Add CORS headers:
-    response.headers.add("Access-Control-Allow-Origin", "*")
-    response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
-    response.headers.add("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS")
-    return response"""
-
 Data = {}
 
 @app.before_request
@@ -46,6 +34,7 @@ def settings_api():
     number_of_shorts = data.get("number_of_shorts")
     query = data.get("query")
     channel = data.get("channel")
+    print(f'Query is: {query}')
 
     if data and number_of_shorts:
         if query and channel:
@@ -57,23 +46,36 @@ def settings_api():
             allResponse= []
             for aQuery in query:
                 try:
+                    print("First attempt to make API call")
                     tempResponse = functions.youtube_videos(API_KEY=current_api_key, max_results=number_of_shorts, channelNames=None, query=aQuery)
+                    print(f'tempReposne: {tempResponse}')
+                    for sublist in tempResponse:
+                        allResponse.append(sublist)
                 except Exception as e:
-                    print(e)
+                    print(f"Exception: {e}")
                     if e =="quota exceeds":
                         print("switching APIs")
+                        print("Second attempt to make an API call. Should not see this more than once")
                         current_api_key = API_KEY2
                         try:
                             tempResponse = functions.youtube_videos(API_KEY=current_api_key, max_results=number_of_shorts, channelNames=None, query=aQuery)
+                            print(f'Second tempResponse: {tempResponse}')
+                            for sublist in tempResponse:
+                                allResponse.append(sublist)
+                            
                         except Exception as e:
                             print(f'man this one is serious: {e}')
-                        allResponse.append(tempResponse)
+                            for sublist in tempResponse:
+                                allResponse.append(sublist)
             
             random.shuffle(allResponse)
+            print(f'allResponse: {allResponse}')
             list_length = len(allResponse)
-            divide = list_length // int(number_of_shorts)
-            response = allResponse[:divide]
-            print (response)
+            print(f'list length: {list_length}')
+            """divide = list_length // int(number_of_shorts)
+            print(f'divide: {divide}')"""
+            response = allResponse[:int(number_of_shorts)]
+            print (f'response: {response}')
             
         elif not query:
             print(data)
@@ -103,4 +105,4 @@ def get_data():
         return jsonify({"error": "No data found for this token"}), 404
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=1025, debug=True)

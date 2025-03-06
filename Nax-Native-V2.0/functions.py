@@ -100,6 +100,7 @@ def youtube_videos(max_results, API_KEY, channelNames=None, query=None):
         except Exception as e:
             if e.status_code == 403:
                 raise Exception("quota exceeds")
+            print (f'exception{e}')
             
 
     if not query and not channelNames:
