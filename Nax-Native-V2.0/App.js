@@ -1,23 +1,17 @@
 import { StatusBar } from 'expo-status-bar';
-import {NavigationContainer, TabActions} from '@react-navigation/native';
+import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import { useHeaderHeight } from '@react-navigation/elements';
-import { StyleSheet, Text, View, TextInput, Button, TouchableOpacity, FlatList, Dimensions, SafeAreaView, ScrollView } from 'react-native';
-import react, { useState, useMemo, useCallback, useRef, useEffect, Tabs } from 'react';
+import { StyleSheet, Text, View, TextInput, Button, TouchableOpacity, FlatList, Dimensions, SafeAreaView } from 'react-native';
+import { useState, useMemo, useRef} from 'react';
 import config from './config';
 import React from 'react';
-import WebView from 'react-native-webview';
+import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
+import Feather from 'react-native-vector-icons/Feather';
+import { WebView } from 'react-native-webview';
+import AboutMe from './About_me';
 
 
-
-
-
-//currently transitioning to react-native-youtube-iframe
-//Change backend so that it send the video ID instead of the URL, as this new library only needs the id
-//copy and paste the basic usage from the documentation page: https://lonelycpp.github.io/react-native-youtube-iframe/basic-usage
-//Use FlatList instead of scroll view
-//UPDATE api backend to it switches APIs: Done
-// Fix accepting arrays in backend
 
 
 
@@ -27,42 +21,40 @@ const { width, height } = Dimensions.get('window');
 
 const HomeScreen = ({ navigation, query, setQuery, handleSubmit, maxResults, setMaxResults, channel, setChannel, numTextInputs, setNumTextInputs, data, error, setData, setError, queryString, setQueryString }) => (
   <View style={styles.container}>
-    <TextInput
-      style={styles.input}
-      value={queryString}
-      onChangeText={(value) => setQueryString(value)} // Update the state when the text changes
-      placeholder='keywords/hashtags (e.g. "#funny cooking" no commas)'
-    />
-    <TextInput
-      style={styles.input}
-      placeholder='max videos'
-      value={maxResults}
-      onChangeText={(value) => setMaxResults(value)}
-      keyboardType='numeric'
-    />
-    <TouchableOpacity onPress={()=>setNumTextInputs(val=>val+1)} style={styles.buttton}>
-            <Text style={styles.text}> Add Channel </Text>
+    <View style={{ marginTop:0, marginBottom: 60, justifyContent: "center", alignItems: "center"}}>
+      <FontAwesome6 name="brain" size={30} color="#A604F2" styles={styles.brainIcon}/>
+      <Feather name="shield" size={100} color="#A604F2" style={{position: "absolute"}} />
+    </View>
+    <View style={styles.settingsContainer}>
+      <View style={styles.textContainer}>
+        <Text style={styles.text}>Nax</Text>
+        <Text style={styles.textDescription}>Don't let algorithms decide what you watch</Text>
+      </View>
+      <TextInput
+        style={styles.input1}
+        value={queryString}
+        onChangeText={(value) => setQueryString(value)} // Update the state when the text changes
+        placeholder='keywords/hashtags'
+      />
+      <TextInput
+        style={styles.input}
+        placeholder='max videos'
+        value={maxResults}
+        onChangeText={(value) => setMaxResults(value)}
+        keyboardType='numeric'
+      />
+
+      <TouchableOpacity style={styles.button} onPress={() => handleSubmit(navigation)}>
+        <Text style={{fontSize: 15, color: "white", fontWeight: 900}}>Submit</Text>
       </TouchableOpacity>
-      <ScrollView style={{flex:1}}>
-            {[...Array(numTextInputs).keys()].map(key=>{
-              return <TextInput value={channel[key] || ""} 
-                        onChangeText={(value) => {
-                          const newChannelInputs = [...channel];
-                          newChannelInputs[key] = value;
-                          setChannel(newChannelInputs);
-                        }}  
-                        key={key}
-                        placeholder="Channel name without @"
-                        style={styles.input}/>
-            })}
-      </ScrollView>
-
-    <Button title="Submit" onPress={() => handleSubmit(navigation)} />    
-
-    {data && <Text>{JSON.stringify(data)}</Text>}
-    {channel && <Text>{JSON.stringify(channel)}</Text>}
-    {error && <Text>{JSON.stringify(error)}</Text>}
-    <StatusBar style="auto" />
+      {error && <Text style={styles.errors}>{JSON.stringify(error)}</Text>}
+      <StatusBar style="auto" />
+    </View>
+    <View style={styles.footer}>
+      <TouchableOpacity onPress={() => navigation.navigate('AboutMe')}>
+            <Text style={styles.bottomText}>here</Text>
+      </TouchableOpacity>
+    </View>
   </View>
 );
 
@@ -98,25 +90,27 @@ function VideoScreenWrapper({data, maxResults}){
 
   try {
     return (
-      <View style={{backgroundColor: "black", height: height, width: width,  marginTop: 0,marginBottom: 0, padding: 0,}}>
-        <FlatList
-          style={{ flex: 1, marginBottom: 0, padding:0 }}
-          data={videos}
-          renderItem={({ item }) => (
-            <WebView
-              source={{ uri: item.uri }}
-              style={{ backgroundColor: "black", height: height, width: width, flex: 1, alignItems: 'center', justifyContent: 'center', display: 'flex', marginTop: 0, marginBottom: 0 }}
-              mediaPlaybackRequiresUserAction={false}
-            />
-          )}
-          keyExtractor={(item, index) => index.toString()}
-          pagingEnabled
-          initialNumToRender={1}
-          showsVerticalScrollIndicator={false}
-          ref={flatListRef}
-          onViewableItemsChanged={handleViewableItemsChanged}
-        />
-      </View>
+      <SafeAreaView styles={{flex: 1, backgroundColor: "black", height: "100%", width:width}}>
+        <View style={{backgroundColor: "black", height: height, width: width,  marginTop: 0,marginBottom: 0, padding: 0, justifyContent: "center", alignItems: "center"}}>
+          <FlatList
+            style={{ flex: 1, marginBottom: 0, padding:0, backgroundColor: "black"}}
+            data={videos}
+            renderItem={({ item }) => (
+              <WebView
+                source={{ uri: item.uri }}
+                style={{ backgroundColor: "black", height: height, width: width, flex: 1, alignItems: 'center', justifyContent: 'center', display: 'flex', marginTop: 0, marginBottom: 0 }}
+                mediaPlaybackRequiresUserAction={false}
+              />
+            )}
+            keyExtractor={(item, index) => index.toString()}
+            pagingEnabled
+            initialNumToRender={1}
+            showsVerticalScrollIndicator={false}
+            ref={flatListRef}
+            onViewableItemsChanged={handleViewableItemsChanged}
+          />
+        </View>
+      </SafeAreaView>
     );
   } catch (error) {
     console.log(error);
@@ -140,7 +134,7 @@ export default function App() {
       let currentWord = "";
       for(let i = 0; i<=queryString.length; i++){
         let character = queryString[i];
-        if(character==" "){
+        if(character==" " || character==","){
           if (currentWord){
             query.push(currentWord);
             currentWord = "";
@@ -172,32 +166,38 @@ export default function App() {
       return;
     }
     if (!channel && !query){
-      setError("Please enter a channel or a query");
+      setError("Please enter one or more keywords or hashtags");
       console.log("error in the second one");
       return;
     }
-
-    try{
-      handleQuery(query, queryString);
-    }catch(error){
-      console.log(`error while converting: ${error}`);
+    if (queryString==""){
+      setQueryString(null)
+      setError("Please enter one or more keywords or hashtags")
+    } else if (!query){
+      setError("Please enter one or more keywords or hashtags")
     }
-    console.log("actually sending it")
-    try {
-      const response = await fetch(`${config.API_URL}/api/settings`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          number_of_shorts: maxResults,
-          query: query,
-          channel: channel,
-        }),
-      });
-      setData({number_of_shorts: maxResults, query: query, channel: channel});
+      try{
+        handleQuery(query, queryString);
+      }catch(error){
+        console.log(`error while converting: ${error}`);
+      }
+      console.log("actually sending it")
+      try {
+        const response = await fetch(`${config.API_URL}/api/settings`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            number_of_shorts: maxResults,
+            query: query,
+            channel: channel,
+          }),
+        });
+        setData({number_of_shorts: maxResults, query: query, channel: channel});
+        
 
       if(!response.ok){
         const errData = await response.json();
-        setError(errData.error || "An error occurred");
+        setError("Please enter one or more keywords or hashtags");
         return;
       }
       console.log("Data sent");
@@ -269,10 +269,9 @@ export default function App() {
             />
           )}
         </Stack.Screen>
-        {/*<Stack.Screen 
-          name="Contact" 
-          component={ContactScreen}
-        />*/}
+
+        <Stack.Screen name="AboutMe" component={AboutMe}/>
+
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -282,35 +281,92 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    height: height,
+    width: width,
+    backgroundColor: '#0A0D17',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 0,
-    marginBottom: 0,
+  },
+  footer: {
+    position: "absolute",
+    bottom: 10,
+  },
+  bottomText: {
+    color: "grey",
+  },
+  text: {
+    fontSize: 30,
+    fontWeight: 600,
+    color: "white",
+  },
+  textDescription: {
+    fontSize: 16,
+    fontWeight: 400,
+    color: "white",
+    opacity: .6,
+    marginLeft: width/20,
+    marginRight: width/20,
+    textAlign: "center",
+    marginBottom: 30,
+  },
+  settingsContainer:{
+    backgroundColor: "#3b3d45",
+    width: width*.75,
+    height: height*.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  textContainer:{
+    position: "absolute",
+    top: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   input: {
-    width: '80%',
-    height: 40,
+    position: 'absolute',
+    color: "black",
+    backgroundColor: "#b6b6b9",
     borderColor: 'gray',
     borderWidth: 1,
-    borderRadius: 5,
+    borderRadius: 30,
     paddingHorizontal: 10,
-    marginBottom: 10,
-    marginTop: 50,
+    top:220,
+    width: width/2,
   },
-  button :{
-    marginVertical : 10,
+  input1: {
+    position: "absolute",
+    color: "black",
+    backgroundColor: "#b6b6b9",
+    borderColor: 'gray',
+    borderWidth: 1,
+    borderRadius: 30,
+    paddingHorizontal: 10,
+    top: 140,
+    width: width/2,
   },
-  contentContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+  errors: {
+    position: "absolute",
+    color: "red",
+    bottom: 10,
+    left:10,
   },
-  video: {
-    flex: 1,
-    width: {width},
-    height: {height},
+  button:{
+    position: "absolute",
+    backgroundColor: "#A604F2",
+    color: "#A604F2",
+    borderRadius: 5,
+    width: width/3.7,
+    height:  34,
+    bottom: 100,
+    alignItems: "center",
+    justifyContent: "center",
   },
+
+  brainIcon: {
+    position: "absolute",
+  }
 });
 
 

@@ -89,7 +89,7 @@ def youtube_videos(max_results, API_KEY, channelNames=None, query=None):
             q=query,
             type="video",
             videoDuration="short",
-            videoEmbeddable="true",
+            videoEmbeddable= "true",
         )
         try:
             response = request.execute()
