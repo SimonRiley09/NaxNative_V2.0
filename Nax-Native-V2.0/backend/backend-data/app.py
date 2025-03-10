@@ -4,6 +4,7 @@ import functions
 from flask_cors import CORS, cross_origin
 import uuid
 import random
+import os
 #fix quota exceeds in the backend
 
 # Configure application
@@ -11,8 +12,8 @@ app = Flask(__name__)
 CORS(app)
 
 #Get the API key from the environment
-API_KEY = "AIzaSyA586g4wab4jL3qBffHb4OZ-XAjobwbuy0"
-API_KEY2 = "AIzaSyBZFFB2SAWVeOugZsLkejTOp12fctk5vRc"
+API_KEY = os.getenv["FIRST_API"]
+API_KEY2 = os.getenv["SECOND_API"]
 current_api_key = API_KEY
 
 print(API_KEY)
@@ -24,7 +25,7 @@ def log_request():
     print(f"Incoming request: {request.method} {request.path}")
 
 
-@app.route("/api/settings", methods=["GET", "POST", "OPTIONS"])
+@app.route("/api/settings", methods=["POST"])
 @cross_origin()
 def settings_api():
     data = request.get_json(force=True)

@@ -1,4 +1,3 @@
-version: '3'
 services:
   database:
     build: ./database
@@ -16,6 +15,9 @@ services:
       - database
     ports:
       - "1025:1025"
+    environment:
+      FIRST_API: ${FIRST_API}
+      SECOND_API: ${SECOND_API}
     networks:
       - backend
   
@@ -25,6 +27,9 @@ services:
       - database
     ports:
       - "1028:1028"
+    environment:
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
     networks:
       - backend
 networks:

@@ -1,6 +1,6 @@
 CREATE DATABASE api_keys;
 
-\c  mydatabse
+\c  api_keys
 
 CREATE TABLE APIs (
     id SERIAL PRIMARY KEY,

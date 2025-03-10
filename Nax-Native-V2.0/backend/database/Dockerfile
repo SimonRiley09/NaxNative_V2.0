@@ -1,7 +1,9 @@
-FROM postgresql:16-alpine
+FROM postgres:16-alpine
 
-USER postgres
+RUN apt-get update && apt-get install -y locales
 
-COPY APIs.sql ./
+COPY APIs.sql /docker-entrypoint-initdb.d/
 
 CMD ["postgres"]
+
+USER postgres

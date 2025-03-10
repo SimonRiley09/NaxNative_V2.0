@@ -22,7 +22,7 @@ const { width, height } = Dimensions.get('window');
 const HomeScreen = ({ navigation, query, setQuery, handleSubmit, maxResults, setMaxResults, channel, setChannel, numTextInputs, setNumTextInputs, data, error, setData, setError, queryString, setQueryString }) => (
   <View style={styles.container}>
     <View style={{ marginTop:0, marginBottom: 60, justifyContent: "center", alignItems: "center"}}>
-      <FontAwesome6 name="brain" size={30} color="#A604F2" styles={styles.brainIcon}/>
+      <FontAwesome6 name="brain" size={30} color="#A604F2" style={styles.brainIcon}/>
       <Feather name="shield" size={100} color="#A604F2" style={{position: "absolute"}} />
     </View>
     <View style={styles.settingsContainer}>
@@ -89,8 +89,9 @@ function VideoScreenWrapper({data, maxResults}){
   console.log("videos: ", videos);
 
   try {
+    //was styles
     return (
-      <SafeAreaView styles={{flex: 1, backgroundColor: "black", height: "100%", width:width}}>
+      <SafeAreaView style={{flex: 1, backgroundColor: "black", height: "100%", width:width}}>
         <View style={{backgroundColor: "black", height: height, width: width,  marginTop: 0,marginBottom: 0, padding: 0, justifyContent: "center", alignItems: "center"}}>
           <FlatList
             style={{ flex: 1, marginBottom: 0, padding:0, backgroundColor: "black"}}
@@ -119,7 +120,7 @@ function VideoScreenWrapper({data, maxResults}){
 
 export default function App() {
   const [maxResults, setMaxResults] = useState(5);
-  const [token, setToken] = useState(null);4
+  const [token, setToken] = useState(null);
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [query, setQuery] = useState([]);
