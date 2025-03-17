@@ -5,20 +5,30 @@ from flask_cors import CORS, cross_origin
 import uuid
 import random
 import os
-#fix quota exceeds in the backend
+import cs50
+
 
 # Configure application
 app = Flask(__name__)
 CORS(app)
 
+try:
+    username = os.getenv("DB_USER")
+    print(f'username: {username}')
+    password = os.getenv("DB_PASSWORD")
+    print(f'password: {password}')
+except Exception as e:
+    print(f'error: {e}')
+
+print("hello world")
 #Get the API key from the environment
-API_KEY = os.getenv["FIRST_API"]
-API_KEY2 = os.getenv["SECOND_API"]
+API_KEY = os.getenv("FIRST_API")
+API_KEY2 = os.getenv("SECOND_API")
 current_api_key = API_KEY
 
-print(API_KEY)
+print(f'api key: {API_KEY}')
 
-Data = {}
+# Data = {}
 
 @app.before_request
 def log_request():
@@ -28,6 +38,15 @@ def log_request():
 @app.route("/api/settings", methods=["POST"])
 @cross_origin()
 def settings_api():
+    api_key = request.headers.get("X-API-Key")
+    db = cs50.SQL(f"postgresql://{username}:{password}@database:5432/api_keys")  # For PostgreSQL
+    deviceID = db.execute("SELECT device_id from APIs WHERE api_key = ?", (api_key,))
+    if not deviceID:
+        return jsonify({"error": "API Key not found"}), 401
+    if not api_key:
+        return jsonify({"error": "API Key not found"}), 401
+    
+    print(f'api_key: {api_key}')
     data = request.get_json(force=True)
     number_of_shorts = data.get("number_of_shorts")
     query = data.get("query")
@@ -81,26 +100,13 @@ def settings_api():
     else:
         return({"error":"one of the components not found"}), 400
 
-    token = str(uuid.uuid4())
-    print("token: ", token)
 
     # Store in our Data dictionary
-    Data[token] = response
     print(response)
 
     # Return JSON with the token
-    return jsonify({"token": token})
+    return jsonify({"data": response}), 200
 
-
-@app.route("/api/data", methods=["GET", "OPTIONS"])
-@cross_origin()
-def get_data():
-    token = request.args.get("token")
-    if token and token in Data:
-        # Return only the data associated with this token
-        return jsonify(Data[token])
-    else:
-        return jsonify({"error": "No data found for this token"}), 404
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=1025, debug=True)

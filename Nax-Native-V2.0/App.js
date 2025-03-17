@@ -3,20 +3,25 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { StyleSheet, Text, View, TextInput, Button, TouchableOpacity, FlatList, Dimensions, SafeAreaView } from 'react-native';
-import { useState, useMemo, useRef} from 'react';
+import { useState, useMemo, useRef, useEffect} from 'react';
 import config from './config';
 import React from 'react';
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
 import Feather from 'react-native-vector-icons/Feather';
 import { WebView } from 'react-native-webview';
 import AboutMe from './About_me';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Device from 'expo-device';
 
-
-
+//fix media playback
+//fix finish screen
+//About me page
+//fix loading page
 
 
 const Stack = createNativeStackNavigator();
 const { width, height } = Dimensions.get('window');
+const deviceID = Device.osInternalBuildId // get the device ID
 
 
 const HomeScreen = ({ navigation, query, setQuery, handleSubmit, maxResults, setMaxResults, channel, setChannel, numTextInputs, setNumTextInputs, data, error, setData, setError, queryString, setQueryString }) => (
@@ -59,48 +64,47 @@ const HomeScreen = ({ navigation, query, setQuery, handleSubmit, maxResults, set
 );
 
 
-function VideoScreenWrapper({data, maxResults}){
+function VideoScreenWrapper({ data, maxResults }) {
   const { width, height } = Dimensions.get('window');
   const flatListRef = useRef(null);
-  const [currentVideoIndex, setCurrentVideoIndex] = useState(null)
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(null);
   const topHeight = useHeaderHeight();
-  console.log(`top height: ${topHeight}`);
+  const webViewRefs = useRef([]);
 
-  const videos = useMemo(() => {
-    return data.map((uri, index) => ({
-      uri: uri,
-      title: `Video ${index}`,
-    }));
-  }, [data]);
+  console.log(`top height: ${topHeight}`);
 
   const handleEndReached = () => {
     console.log("You've reached the end!");
   };
 
   const handleViewableItemsChanged = ({ viewableItems }) => {
-    const visibleIndex = viewableItems[0].index;
-    console.log(`*********visible index: ${visibleIndex}**********8`)
+    const visibleIndex = viewableItems[0]?.index;
+    console.log(`*********visible index: ${visibleIndex}**********8`);
     if (visibleIndex !== undefined && visibleIndex !== currentVideoIndex) {
       setCurrentVideoIndex(visibleIndex);
+      webViewRefs.current.forEach((ref, index) => {
+        if (ref && index !== visibleIndex) {
+          ref.injectJavaScript('document.querySelector("video").pause();');
+        }
+      });
     }
-      };
+  };
 
-  const URL = data[0];
-  console.log("videos: ", videos);
+  console.log("videos: ", data);
 
   try {
-    //was styles
     return (
-      <SafeAreaView style={{flex: 1, backgroundColor: "black", height: "100%", width:width}}>
-        <View style={{backgroundColor: "black", height: height, width: width,  marginTop: 0,marginBottom: 0, padding: 0, justifyContent: "center", alignItems: "center"}}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "black", height: "100%", width: width }}>
+        <View style={{ backgroundColor: "black", height: height, width: width, marginTop: 0, marginBottom: 0, padding: 0, justifyContent: "center", alignItems: "center" }}>
           <FlatList
-            style={{ flex: 1, marginBottom: 0, padding:0, backgroundColor: "black"}}
-            data={videos}
-            renderItem={({ item }) => (
+            style={{ flex: 1, marginBottom: 0, padding: 0, backgroundColor: "black" }}
+            data={data}
+            renderItem={({ item, index }) => (
               <WebView
-                source={{ uri: item.uri }}
+                ref={(ref) => (webViewRefs.current[index] = ref)}
+                source={{ uri: item }}
                 style={{ backgroundColor: "black", height: height, width: width, flex: 1, alignItems: 'center', justifyContent: 'center', display: 'flex', marginTop: 0, marginBottom: 0 }}
-                mediaPlaybackRequiresUserAction={false}
+                mediaPlaybackRequiresUserAction={true}
               />
             )}
             keyExtractor={(item, index) => index.toString()}
@@ -109,6 +113,7 @@ function VideoScreenWrapper({data, maxResults}){
             showsVerticalScrollIndicator={false}
             ref={flatListRef}
             onViewableItemsChanged={handleViewableItemsChanged}
+            onEndReached={handleEndReached}
           />
         </View>
       </SafeAreaView>
@@ -128,6 +133,52 @@ export default function App() {
   const [numTextInputs,setNumTextInputs] = useState(0);
   const [numVideos, setNumVideos] = useState(0);
   const [queryString, setQueryString] = useState("");
+  const [isFirstLaunched, setIsFirstLaunched] = useState(null)
+
+  useEffect(() =>{
+    const checkFirstLaunch = async () => {
+      console.log("Checking first launch");
+      console.log("device ID: ", deviceID);
+    try{
+      const hashLaunched = await AsyncStorage.getItem('hasLaunched');
+      console.log("hashLaunched: ", hashLaunched);
+      if (hashLaunched===null){
+        try {
+          console.log('sending device ID');
+          const sendID = await fetch(`https://reimagined-spork-wr9rq49rqrp4h9q74-1028.app.github.dev/api/keys`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              deviceID: deviceID,
+            }),
+          });
+          
+          if (!sendID.ok) {
+            console.log('error sending device ID');
+          }
+          const sendIDJson = await sendID.json();
+          console.log(`sendIDJson: ${sendIDJson.api_key}`);
+          const api_key = sendIDJson.api_key;
+          await AsyncStorage.setItem('api_key', api_key);
+          AsyncStorage.setItem('deviceID', deviceID);
+          console.log(`device ID: ${deviceID}`);
+        } catch (error) {
+          console.log(`error sending device ID: ${error}`);
+        }
+        await AsyncStorage.setItem('hasLaunched', 'true');
+        console.log("hasLaunchedNew", hashLaunched);
+        setIsFirstLaunched(true)
+      } else {
+        setIsFirstLaunched(false)
+      }
+    }
+    catch (error){
+      console.error('Error Checking first launch: ', error);
+    }
+  };
+  checkFirstLaunch();
+  }, []);
+
 
   const handleQuery = async(query, queryString,) =>{
     try{
@@ -183,10 +234,13 @@ export default function App() {
         console.log(`error while converting: ${error}`);
       }
       console.log("actually sending it")
+      
       try {
         const response = await fetch(`${config.API_URL}/api/settings`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json",
+            "X-Api-Key": await AsyncStorage.getItem('api_key')
+           },
           body: JSON.stringify({
             number_of_shorts: maxResults,
             query: query,
@@ -203,19 +257,7 @@ export default function App() {
       }
       console.log("Data sent");
 
-      const json = await response.json();
-      const {token} = json;
-      setToken(token);
-      console.log("Token received", token);
-      setData({token: token, data:{number_of_shorts: maxResults, query: query}});
-      console.log("Data set: ", data);
-
-
-      const dataResponse = await fetch(`${config.API_URL}/api/data?token=${token}`);
-      if(!dataResponse.ok){
-        setError("Error fetching the data");
-        return;}
-      const dataJson = await dataResponse.json();
+      const dataJson = await response.json();
       setData(dataJson);
       navigation.navigate('VideoScreen', {
         data: dataJson,

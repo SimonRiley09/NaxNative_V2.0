@@ -1,11 +1,15 @@
 services:
   database:
     build: ./database
+    ports:
+      - "5432:5432"
     restart: always
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: api_keys
+    volumes:
+    - ./postgres_data:/var/lib/postgresql/data
     networks:
       - backend  
     
@@ -18,6 +22,8 @@ services:
     environment:
       FIRST_API: ${FIRST_API}
       SECOND_API: ${SECOND_API}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
     networks:
       - backend
   

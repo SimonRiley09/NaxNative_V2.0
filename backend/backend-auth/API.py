@@ -16,7 +16,7 @@ try:
     print(f'password: {password}')
 except Exception as e:
     print(f'error: {e}')
-API_KEYS = {}
+#API_KEYS = {}
 
 @app.route("/api/keys", methods=["POST", "DELETE", "GET"])
 @cross_origin()
@@ -26,22 +26,16 @@ def handle_key():
         print(f'data: {data}')
         deviceID = data.get("deviceID")
         print(f'deviceID: {deviceID}')
-        API_Key = str(uuid.uuid4)
+        API_Key = str(uuid.uuid4())
         try:
-            db = cs50.SQL(f"postgres://{username}:{password}@database:5432/api_keys")  # For PostgreSQL
-            db.execute("INSERT INTO api_keys (device_id, api_key) VALUES (?, ?)", deviceID, API_Key)
+            db = cs50.SQL(f"postgresql://{username}:{password}@database:5432/api_keys")  # For PostgreSQL
+            db.execute("INSERT INTO APIs (device_id, api_key) VALUES (?, ?)", deviceID, API_Key)
+            all_keys = db.execute("Select * FROM APIs")
+            print(f'all: {all_keys}')
         except Exception as e:
             print(f'Exception in database: {e}')
-        API_KEYS[deviceID] = API_Key
-        return jsonify({"api_keys": API_KEYS})
-    elif request.method == "DELETE":
-        data = request.get_json(force=True)
-        deviceID = data.get["deviceID"]
-        if deviceID in API_KEYS:
-            del API_KEYS[deviceID]
-            return jsonify({"message": "API key succefuly deleted"})
-        else:
-            return jsonify({"message": "API key not found"}), 404
+        #API_KEYS[deviceID] = API_Key
+        return jsonify({"api_key": API_Key})
     else:
         return jsonify({"message": "Method not allowed"})
     

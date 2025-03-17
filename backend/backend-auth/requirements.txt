@@ -1,0 +1,4 @@
+flask
+flask_cors
+cs50
+psycopg2-binary
