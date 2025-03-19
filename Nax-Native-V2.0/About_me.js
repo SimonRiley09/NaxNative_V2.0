@@ -1,21 +1,14 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, Dimensions } from 'react-native';
-import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
-import Feather from 'react-native-vector-icons/Feather';
 
 const {width, height} = Dimensions.get("window")
 
 const AboutMe = ({ navigation }) => {
   return (
-    <View style={{ flex:1, justifyContent: "center", alignItems: "center", backgroundColor: "#0A0D17"}}>
-        <View style={{alignItems: "center", justifyContent: "center", marginBottom:70}}>
-          <FontAwesome6 name="brain" size={50} color="#A604F2" styles={{position: "absolute"}}/>
-          <Feather name="shield" size={166.666666667} color="#A604F2" style={{position: "absolute"}} />
-        </View>
-        <Text style={{color: "white", fontSize: 55, fontWeight: 900}}>Nax</Text>
-        <Text style={{color: "grey"}}>Overcome your scrolling addiction</Text>
-        <Text style={{position: "absolute", bottom: 5, left:0, color: "grey", marginLeft: 10, marginRight: 10}}>© 2025 Shayan Shamsi Pour Siahmazgi. All rights reserved.</Text>
-    </View>
+    <View style={styles.container}>
+      <Image source={require('./assets/20250307_103721.jpg')} style={{width: 200, height: 246.40883978, position: "absolute", top: height/8, marginBottom: 200}}/>
+      <Text style={styles.text}>My name is Shayan Shamsi Pour Siahmazgi. I was born in Tehran, Iran, and I'm currently living in the state of Indiana, US and studying as a high school student at Bloomington High School South. I am passionate about finance and technology. My goal with this app is to help my generation overcome their screen addiction. I try to keep this app free of charge and ads so everybody can enjoy it. Please consider recommending this app to your friends.</Text>
+    </View> 
   );
 };
 
