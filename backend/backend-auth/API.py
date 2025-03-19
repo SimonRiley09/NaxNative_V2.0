@@ -24,12 +24,12 @@ def handle_key():
     if request.method == "POST":
         data = request.get_json(force=True)
         print(f'data: {data}')
-        deviceID = data.get("deviceID")
-        print(f'deviceID: {deviceID}')
+        frontID = data.get("frontID")
+        print(f'frontID: {frontID}')
         API_Key = str(uuid.uuid4())
         try:
             db = cs50.SQL(f"postgresql://{username}:{password}@database:5432/api_keys")  # For PostgreSQL
-            db.execute("INSERT INTO APIs (device_id, api_key) VALUES (?, ?)", deviceID, API_Key)
+            db.execute("INSERT INTO APIs (frontid, api_key) VALUES (?, ?)", frontID, API_Key)
             all_keys = db.execute("Select * FROM APIs")
             print(f'all: {all_keys}')
         except Exception as e:

@@ -39,12 +39,21 @@ def log_request():
 @cross_origin()
 def settings_api():
     api_key = request.headers.get("X-API-Key")
-    db = cs50.SQL(f"postgresql://{username}:{password}@database:5432/api_keys")  # For PostgreSQL
-    deviceID = db.execute("SELECT device_id from APIs WHERE api_key = ?", (api_key,))
-    if not deviceID:
-        return jsonify({"error": "API Key not found"}), 401
-    if not api_key:
-        return jsonify({"error": "API Key not found"}), 401
+    print(f'api_key: {api_key}')
+    frontID = request.headers.get("X-Front-ID")
+    print(f'frontID: {frontID}')
+    try: 
+        db = cs50.SQL(f"postgresql://{username}:{password}@database:5432/api_keys")  # For PostgreSQL
+        frontID_database = db.execute("SELECT api_key from APIs WHERE frontid = ?", (frontID,))
+    except Exception as e:
+        print(f'Exception in database: {e}')
+    print(f'frontID_database: {frontID_database[0]['api_key']}')
+    if not frontID_database:
+        return jsonify({"error": "API Key not found for this frontID"}), 401
+    elif not api_key:
+        return jsonify({"error": "please provide the api key"}), 401
+    elif frontID_database[0]['api_key'] != api_key:
+        return jsonify({"error": "Authorization failed"}), 403
     
     print(f'api_key: {api_key}')
     data = request.get_json(force=True)

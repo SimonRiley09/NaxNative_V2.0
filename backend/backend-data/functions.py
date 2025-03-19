@@ -3,6 +3,7 @@ import googleapiclient.discovery
 from googleapiclient.discovery import build
 import googleapiclient.errors
 from flask import jsonify
+import requests
 
 api_service_name = "youtube"
 api_version = "v3"
@@ -59,9 +60,10 @@ def youtube_videos(max_results, API_KEY, channelNames=None, query=None):
                 channelId=ID,
                 maxResults=max_results,
                 q=query,
-                type="short",
+                type="video",
                 videoDuration="short",
                 videoEmbeddable="true",
+                videoSyndicated="true", #recently added
             )
             try:
                 response = request.execute()

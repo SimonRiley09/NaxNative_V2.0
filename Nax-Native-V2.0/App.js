@@ -64,7 +64,7 @@ const HomeScreen = ({ navigation, query, setQuery, handleSubmit, maxResults, set
 );
 
 
-function VideoScreenWrapper({ data, maxResults }) {
+function VideoScreenWrapper({ navigation, data, maxResults }) {
   const { width, height } = Dimensions.get('window');
   const flatListRef = useRef(null);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(null);
@@ -72,6 +72,7 @@ function VideoScreenWrapper({ data, maxResults }) {
   const topHeight = useHeaderHeight();
   const webViewRefs = useRef([]);
 
+  const modifiedData = [...data.data, { type: 'finalPage' }];
 
   const handleEndReached = () => {
     console.log("You've reached the end!");
@@ -110,22 +111,31 @@ function VideoScreenWrapper({ data, maxResults }) {
         <View style={{ backgroundColor: "black", height: height, width: width, marginTop: 0, marginBottom: 0, padding: 0, justifyContent: "center", alignItems: "center" }}>
           <FlatList
             style={{ flex: 1, marginBottom: 0, padding: 0, backgroundColor: "black" }}
-            data={data.data}
-            renderItem={({ item, index }) => (
+            //was data.data
+            data={modifiedData}
+            renderItem={({ item, index }) => {
+              if (item.type === 'finalPage') {
+                return (
+                    <View style={{ height: height, width: width, justifyContent: 'center', alignItems: 'center' }}>
+                        <Text style={{ color: "white", fontSize: 20 }}>Thank you for watching!</Text>
+                        <Button title="Go to Home" onPress={() => navigation.navigate('Home')} />
+                    </View>
+                );
+            }
               <WebView
                 ref={(ref) => (webViewRefs.current[index] = ref)}
                 source={{ uri: item }}
                 style={{ backgroundColor: "black", height: height, width: width, flex: 1, alignItems: 'center', justifyContent: 'center', display: 'flex', marginTop: 0, marginBottom: 0 }}
                 mediaPlaybackRequiresUserAction={true}
               />
-            )}
+            }}
             keyExtractor={(item, index) => index.toString()}
             pagingEnabled
             initialNumToRender={1}
             showsVerticalScrollIndicator={false}
             ref={flatListRef}
             onViewableItemsChanged={handleViewableItemsChanged}
-            onEndReached={navigation.navigate('Home')}
+            onEndReached={handleEndReached}
           />
         </View>
       </SafeAreaView>
@@ -151,14 +161,13 @@ export default function App() {
   useEffect(() =>{
     const checkFirstLaunch = async () => {
       console.log("Checking first launch");
-      console.log("device ID: ", frontID);
       try{
         const hashLaunched = await AsyncStorage.getItem('hasLaunched');
         console.log("hashLaunched: ", hashLaunched);
         if (hashLaunched===null){
           try {
             const frontID = Crypto.randomUUID();
-            AsyncStorage.setItem('frontID', frontID);
+            await AsyncStorage.setItem('frontID', frontID);
             console.log('sending frontID');
             const sendID = await fetch(`https://reimagined-spork-wr9rq49rqrp4h9q74-1028.app.github.dev/api/keys`, {
               method: "POST",
