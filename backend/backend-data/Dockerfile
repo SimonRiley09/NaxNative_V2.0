@@ -6,7 +6,7 @@ COPY requirements.txt ./
 
 RUN pip install -r requirements.txt
 
-COPY "app.py" "functions.py" ./
+COPY app.py functions.py ./templates ./
 
 RUN useradd app
 

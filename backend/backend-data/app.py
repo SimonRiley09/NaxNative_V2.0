@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from googleapiclient.discovery import build
 import functions
 from flask_cors import CORS, cross_origin
@@ -47,7 +47,6 @@ def settings_api():
         frontID_database = db.execute("SELECT api_key from APIs WHERE frontid = ?", (frontID,))
     except Exception as e:
         print(f'Exception in database: {e}')
-    print(f'frontID_database: {frontID_database[0]['api_key']}')
     if not frontID_database:
         return jsonify({"error": "API Key not found for this frontID"}), 401
     elif not api_key:
@@ -116,6 +115,10 @@ def settings_api():
     # Return JSON with the token
     return jsonify({"data": response}), 200
 
+@app.route("/loaderio-eb9886a401ac9cb1ee1f4bc251a4886c/", methods=["POST", "GET"])
+@cross_origin()
+def check():
+    return render_template("loaderio-eb9886a401ac9cb1ee1f4bc251a4886c.html")
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=1025, debug=True)

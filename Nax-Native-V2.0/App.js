@@ -8,15 +8,16 @@ import config from './config';
 import React from 'react';
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
 import Feather from 'react-native-vector-icons/Feather';
+import MaterialIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { WebView } from 'react-native-webview';
 import AboutMe from './About_me';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Device from 'expo-device';
 import LoadingScreen from './loadingScreen';
 import * as Crypto from 'expo-crypto';
-
-//fix finish screen
+'/['
 //About me page
+//How we help
 //fix loading page
 
 
@@ -48,18 +49,22 @@ const HomeScreen = ({ navigation, query, setQuery, handleSubmit, maxResults, set
         onChangeText={(value) => setMaxResults(value)}
         keyboardType='numeric'
       />
-
       <TouchableOpacity style={styles.button} onPress={() => handleSubmit(navigation)}>
         <Text style={{fontSize: 15, color: "white", fontWeight: 900}}>Submit</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={{position: "absolute", bottom: 5, left: 10, right:10}} onPress={() => navigation.navigate('Help')}>
+            <Text style={{color: "grey", fontSize: 11}}>By continuing, you agree to<Text style={{textDecorationLine: "underline"}}> terms of service</Text></Text>
       </TouchableOpacity>
       {error && <Text style={styles.errors}>{JSON.stringify(error)}</Text>}
       <StatusBar style="auto" />
     </View>
+  
     <View style={styles.footer}>
       <TouchableOpacity onPress={() => navigation.navigate('AboutMe')}>
-            <Text style={styles.bottomText}>here</Text>
+            <Text style={styles.bottomText}>About Me</Text>
       </TouchableOpacity>
     </View>
+    <Text style={{position: "absolute", bottom: 5, left:0, color: "grey", marginLeft: 10, marginRight: 10, fontSize: 9}}>© 2025 Shayan Shamsi Pour Siahmazgi. All rights reserved.</Text>
   </View>
 );
 
@@ -116,18 +121,24 @@ function VideoScreenWrapper({ navigation, data, maxResults }) {
             renderItem={({ item, index }) => {
               if (item.type === 'finalPage') {
                 return (
-                    <View style={{ height: height, width: width, justifyContent: 'center', alignItems: 'center' }}>
-                        <Text style={{ color: "white", fontSize: 20 }}>Thank you for watching!</Text>
-                        <Button title="Go to Home" onPress={() => navigation.navigate('Home')} />
-                    </View>
+                  <View style={{ backgroundColor: "black", height: height, width: width, flex: 1, alignItems: 'center', justifyContent: 'center', display: 'flex', marginTop: 0, marginBottom: 0 }}>
+                    <MaterialIcons name="grass" size={100} color="#A604F2" />
+                    <Text style={{ color: "white", fontSize: 30 }}>Go touch some grass</Text>
+                    <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+                      <Text style={{ color: "#A604F2", fontSize: 20, marginTop: 20 }}>Back to Home</Text>
+                    </TouchableOpacity>
+                  </View>
                 );
-            }
-              <WebView
-                ref={(ref) => (webViewRefs.current[index] = ref)}
-                source={{ uri: item }}
-                style={{ backgroundColor: "black", height: height, width: width, flex: 1, alignItems: 'center', justifyContent: 'center', display: 'flex', marginTop: 0, marginBottom: 0 }}
-                mediaPlaybackRequiresUserAction={true}
+              }
+              return(
+                <WebView
+                  ref={(ref) => (webViewRefs.current[index] = ref)}
+                  source={{ uri: item }}
+                  style={{ backgroundColor: "black", height: height, width: width, flex: 1, alignItems: 'center', justifyContent: 'center', display: 'flex', marginTop: 0, marginBottom: 0 }}
+                  mediaPlaybackRequiresUserAction={true}
+                  javaScriptEnabled={true}
               />
+              );
             }}
             keyExtractor={(item, index) => index.toString()}
             pagingEnabled
@@ -368,11 +379,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   footer: {
-    position: "absolute",
     bottom: 10,
+    flexDirection: "row",
+    gap: 20,
   },
   bottomText: {
     color: "grey",
+    marginTop: 20,
+    textDecorationLine: "underline",
+    fontSize: 12,
   },
   text: {
     fontSize: 30,
@@ -429,7 +444,7 @@ const styles = StyleSheet.create({
   errors: {
     position: "absolute",
     color: "red",
-    bottom: 10,
+    bottom: 30,
     left:10,
   },
   button:{
