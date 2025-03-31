@@ -15,10 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Device from 'expo-device';
 import LoadingScreen from './loadingScreen';
 import * as Crypto from 'expo-crypto';
-'/['
-//About me page
-//How we help
-//fix loading page
+
 
 
 const Stack = createNativeStackNavigator();
@@ -77,12 +74,14 @@ function VideoScreenWrapper({ navigation, data, maxResults }) {
   const topHeight = useHeaderHeight();
   const webViewRefs = useRef([]);
 
+  // Add a final page
   const modifiedData = [...data.data, { type: 'finalPage' }];
 
   const handleEndReached = () => {
     console.log("You've reached the end!");
   };
   
+  // Handle loading screen
   useEffect(() => {
     if (data) {
       setLoading(false);
@@ -95,6 +94,7 @@ function VideoScreenWrapper({ navigation, data, maxResults }) {
   if (loading) {
     return <LoadingScreen />;
   }
+  // Mute all videos that are not being displayed
   const handleViewableItemsChanged = ({ viewableItems }) => {
     const visibleIndex = viewableItems[0]?.index;
     console.log(`*********visible index: ${visibleIndex}**********8`);
@@ -108,7 +108,6 @@ function VideoScreenWrapper({ navigation, data, maxResults }) {
     }
   };
 
-  console.log("videos: ", data.data);
 
   try {
     return (
@@ -169,6 +168,7 @@ export default function App() {
   const [isFirstLaunched, setIsFirstLaunched] = useState(null)
   const [loading, setLoading] = useState(false);
 
+  // Simple check first launch
   useEffect(() =>{
     const checkFirstLaunch = async () => {
       console.log("Checking first launch");
@@ -177,10 +177,12 @@ export default function App() {
         console.log("hashLaunched: ", hashLaunched);
         if (hashLaunched===null){
           try {
+            // Generate a frontID
             const frontID = Crypto.randomUUID();
+            // Save the frontID
             await AsyncStorage.setItem('frontID', frontID);
-            console.log('sending frontID');
-            const sendID = await fetch(`https://reimagined-spork-wr9rq49rqrp4h9q74-1028.app.github.dev/api/keys`, {
+            // Fetch frontID with backend
+            const sendID = await fetch(`${config.RegisterURL}/api/keys`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
@@ -192,13 +194,13 @@ export default function App() {
               console.log('error sending device ID');
             }
             const sendIDJson = await sendID.json();
-            console.log(`sendIDJson: ${sendIDJson.api_key}`);
+            // Save the api_key recieved
             const api_key = sendIDJson.api_key;
             await AsyncStorage.setItem('api_key', api_key);
-            console.log(`frontID: ${frontID}`);
           } catch (error) {
             console.log(`error sending device ID: ${error}`);
           }
+          //Set has launched to true
           await AsyncStorage.setItem('hasLaunched', 'true');
           console.log("hasLaunchedNew", hashLaunched);
           setIsFirstLaunched(true)
@@ -215,6 +217,7 @@ export default function App() {
 
 
   const handleQuery = async(query, queryString,) =>{
+    // This handles spaces or , between queries and makes a list out of them
     try{
       query.length = 0;
       let currentWord = "";
@@ -232,26 +235,27 @@ export default function App() {
       if(currentWord){
           query.push(currentWord)
         }
-      //query.pop()
-      console.log(query)
     }catch(error){
       console.log(`error from handle query: ${error}`)
     }
   }
 
 
+  //handle submit for the button
   const handleSubmit = async (navigation) =>{
     setError(null);
     setData(null);
     setLoading(true);
 
     console.log("Sending data to the server");
+    //check if both channel and query don't exist
     if (channel && query && channel.length > 0){
       setError("Please only enter a channel or a query, not both");
       console.log("error in the first one")
       setLoading(false);
       return;
     }
+    // Handle unexpected inputs
     if (!channel && !query){
       setError("Please enter one or more keywords or hashtags");
       console.log("error in the second one");
@@ -271,11 +275,9 @@ export default function App() {
       }catch(error){
         console.log(`error while converting: ${error}`);
       }
-      console.log("actually sending it")
-      console.log("api key: ", await AsyncStorage.getItem('api_key'));
-      console.log("frontID: ", await AsyncStorage.getItem('frontID'));
       
       try {
+        // Send request to backend
         const response = await fetch(`${config.API_URL}/api/settings`, {
           method: "POST",
           headers: { "Content-Type": "application/json",
@@ -298,10 +300,12 @@ export default function App() {
       console.log("Data sent");
       console.log("response: ", response);
 
+      // Handle the recieved links
       const dataJson = await response.json();
       console.log("dataJson: ", dataJson);
       setData(dataJson);
       setLoading(false);
+      //Navigate to video screen component
       navigation.navigate('VideoScreen', {
         data: dataJson,
         numVideos: maxResults

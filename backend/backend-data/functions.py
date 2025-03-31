@@ -8,14 +8,15 @@ import requests
 api_service_name = "youtube"
 api_version = "v3"
 
+# Channel is not available in frontend
 def channel_lookup(usernames, DEVELOPER_KEY):
     # Disable OAuthlib's HTTPS verification when running locally.
     # *DO NOT* leave this option enabled in production.
     os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
     IDs = []
-    #clean_usernames = usernames.lstrip('@')
 
     try:
+        #Connect to api endpoint
         youtube = googleapiclient.discovery.build(
             api_service_name, api_version, developerKey=DEVELOPER_KEY)
     except Exception as e:
@@ -24,13 +25,14 @@ def channel_lookup(usernames, DEVELOPER_KEY):
 
     for username in usernames:
         try:
+            # Lookup the id of each channel
             request = youtube.channels().list(
                 part="id",
                 forHandle=username,
             )
             response = request.execute()
-            print(response)
             if "items" in response and len(response["items"]) > 0:
+                # Add each of the IDs to the IDs list
                 id = response["items"][0]["id"]
                 IDs.append(id)
             else:
@@ -39,19 +41,20 @@ def channel_lookup(usernames, DEVELOPER_KEY):
             print(f"An error occurred: {e}")
     return IDs
 
-# -*- coding: utf-8 -*-
 
-# Sample Python code for youtube.search.list
-# See instructions for running these code samples locally:
-# https://developers.google.com/explorer-help/code-samples#python
 
 def youtube_videos(max_results, API_KEY, channelNames=None, query=None):
     
+    #Connect to API endpoint
     youtube = build(api_service_name, api_version,
                     developerKey=API_KEY)
 
+    # To store all the links
     video_links = []
 
+
+    # Handle getting videos from the requested channel
+    # CHANNELS ARE NOT AVAILABLE IN THE FRONT END
     if channelNames and channelNames != []:
         ChannelIDs = channel_lookup(usernames=channelNames, DEVELOPER_KEY=API_KEY)
         for ID in ChannelIDs:
@@ -67,14 +70,15 @@ def youtube_videos(max_results, API_KEY, channelNames=None, query=None):
             )
             try:
                 response = request.execute()
+                # Add links to video links
                 for item in response.get("items", []):
-                    #print(item)
                     if "id" in item and "videoId" in item["id"]:
                         video_id = item["id"]["videoId"]
                         video_links.append(f"https://www.youtube.com/watch?v={video_id}")
             except Exception as e:
                 print(f"An error occurred: {e}")
 
+    # Handle requesting viddeos with queries
     if query:
         request = youtube.search().list(
             part="id",
@@ -86,6 +90,7 @@ def youtube_videos(max_results, API_KEY, channelNames=None, query=None):
         )
         try:
             response = request.execute()
+            # Append to video links
             for item in response.get("items", []):
                 if "id" in item and "videoId" in item["id"]:
                     video_id = item["id"]["videoId"]
@@ -99,4 +104,5 @@ def youtube_videos(max_results, API_KEY, channelNames=None, query=None):
     if not query and not channelNames:
         print("Please provide a query or channel name")
 
+    # REturn the video_links array
     return video_links

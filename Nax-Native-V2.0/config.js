@@ -1,4 +1,5 @@
 export default {
-    API_URL: "https://reimagined-spork-wr9rq49rqrp4h9q74-1025.app.github.dev",
+    API_URL: "your /api/settings URL here",
+    RegisterURL: " Your /api/keys URL",
   };
     
